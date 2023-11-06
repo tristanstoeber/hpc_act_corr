@@ -20,9 +20,3 @@ data = dataconvv.ReadSession(dataset,path,animal_id,day,beh,session,unit_spiketi
 times = data.df_session
 clusters = data.df_cells
 blk = data.blk
-
-# print(times)
-# print(clusters)
-# times.to_csv("time.csv", index=False)
-# clusters.to_csv("clusters.csv", index=False)
-with open('file.blk', 'r') as f:data = f.read()
