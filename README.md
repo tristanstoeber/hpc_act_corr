@@ -1,4 +1,4 @@
-# The influence of Salient Experiences on hippocampal neural assemblies
+# The Influence of Salient Experiences on Hippocampal Neural Assemblies
 
 ## Functions
 1. **Process** Loading the dataset
@@ -26,7 +26,16 @@ plot_assembly_activity_overtime(Social_joint_CA2_CA3_assembly_activities_over_ti
 
 ```
 
-![image](https://github.com/user-attachments/assets/f4c575cb-ec18-448d-a1f4-e24ac7ea09c2)
+![activity](https://github.com/user-attachments/assets/0cee3168-0720-4884-9358-6b7a2bbe153b)
+
+
+## Analysis
+
+1. **Social_projectV7** _This version trace Social and Non-Scoial CA2-CA3 Joint cell Assemblies in A013_DAY7_
+   Finding: a) **Social Joint Assembley have higher Activation rate in post sleep vs pre sleep and the difference decline over time**
+            b) **Non Social Joint assemblies also have higher activation in post sleep**
+            c) **Activation rates of both social and non-social joint assemblies during sleep following social stimulus were signficantly higher than following non-social experience**
+2. **SocialProject_V9** _This version find joint assemblies in social experience epoch that have significant similarity with non_social epochs, and removes them, in order to isolate Social Joint cell assemblies_
 
 
 
