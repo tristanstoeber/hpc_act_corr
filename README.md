@@ -32,10 +32,11 @@ plot_assembly_activity_overtime(Social_joint_CA2_CA3_assembly_activities_over_ti
 ## Analysis
 
 1. **Social_projectV7** _This version trace Social and Non-Scoial CA2-CA3 Joint cell Assemblies in A013_DAY7_
+
    Finding: a) **Social Joint Assembley have higher Activation rate in post sleep vs pre sleep and the difference decline over time**
             b) **Non Social Joint assemblies also have higher activation in post sleep**
             c) **Activation rates of both social and non-social joint assemblies during sleep following social stimulus were signficantly higher than following non-social experience**
-2. **SocialProject_V9** _This version find joint assemblies in social experience epoch that have significant similarity with non_social epochs, and removes them, in order to isolate Social Joint cell assemblies_
+3. **SocialProject_V9** _This version find joint assemblies in social experience epoch that have significant similarity with non_social epochs, and removes them, in order to isolate Social Joint cell assemblies_
 
 
 
