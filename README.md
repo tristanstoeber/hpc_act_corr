@@ -2,8 +2,10 @@
 
 ## Functions
 1. **Process** Loading the dataset
-2. **Assembly.py**   Lopes-dos-Santos et al (2013)
-3. **Assembly_plot.py** For plotting assembly patterns in CA1,CA2,CA3 and Joint CA1-CA2 and CA2-CA3, assembly activity overtime, and plotting similarities between cell assemblies in different conditions
+2. **Assembly.py**   From neuro_py package (based on Lopes-dos-Santos et al (2013))
+3. **Assembly_reactivation.py** From neuro_py package
+4. **Assembly_plot.py** For plotting assembly patterns in CA1,CA2,CA3 and Joint CA1-CA2 and CA2-CA3, assembly activity overtime, and plotting similarities between cell assemblies in different conditions
+
 
 ### Example
 ```
@@ -29,17 +31,9 @@ plot_assembly_activity_overtime(Social_joint_CA2_CA3_assembly_activities_over_ti
 ![activity](https://github.com/user-attachments/assets/0cee3168-0720-4884-9358-6b7a2bbe153b)
 
 
-## Analysis
+## Citation
 
-1. **Social_projectV7** _This version trace Social and Non-Scoial CA2-CA3 Joint cell Assemblies in A013_DAY7_
-
-   Finding:
-
-   a) **Social Joint Assembley have higher Activation rate in post sleep vs pre sleep and the difference decline over time**
-
-   b) **Non Social Joint assemblies also have higher activation in post sleep**
-
-   c) **Activation rates of both social and non-social joint assemblies during sleep following social stimulus were signficantly higher than following non-social experience**
+https://github.com/ryanharvey1/neuro_py
 
    
 2. **SocialProject_V9** _This version find joint assemblies in social experience epoch that have significant similarity with non_social epochs, and removes them, in order to isolate Social Joint cell assemblies_
