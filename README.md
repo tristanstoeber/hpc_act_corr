@@ -35,9 +35,6 @@ plot_assembly_activity_overtime(Social_joint_CA2_CA3_assembly_activities_over_ti
 
 https://github.com/ryanharvey1/neuro_py
 
-   
-2. **SocialProject_V9** _This version find joint assemblies in social experience epoch that have significant similarity with non_social epochs, and removes them, in order to isolate Social Joint cell assemblies_
-
 
 
 
