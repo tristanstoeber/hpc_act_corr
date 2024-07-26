@@ -3,32 +3,16 @@
 ## Functions
 1. **Process** Loading the dataset
 2. **Assembly.py**   From neuro_py package (based on Lopes-dos-Santos et al (2013))
-3. **Assembly_reactivation.py** From neuro_py package
+3. **Assembly_reactivation.py** From neuro_py package 
 4. **Assembly_plot.py** For plotting assembly patterns in CA1,CA2,CA3 and Joint CA1-CA2 and CA2-CA3, assembly activity overtime, and plotting similarities between cell assemblies in different conditions
+5. **Correlation.py** For cross correlation
 
+## Analysis
 
-### Example
-```
-epoch_lengths = [
-    len(A013_day7_bins_p['A013_day7_rest_hab_pre'].to_numpy()),
-    len(A013_day7_bins_p['A013_day7_habituation_arena'].to_numpy()),
-    len(A013_day7_bins_p['A013_day7_rest_hab_post'].to_numpy()),
-    len(A013_day7_bins_p['A013_day7_habituation_cage'].to_numpy()),
-    len(A013_day7_bins_p['A013_day7_rest_pre'].to_numpy()),
-    len(A013_day7_bins_p['A013_day7_2novel_exposure'].to_numpy()),
-    len(A013_day7_bins_p['A013_day7_exposure_reversed'].to_numpy()),
-    len(A013_day7_bins_p['A013_day7_rest_post2'].to_numpy()),
-    len(A013_day7_bins_p['A013_day7_1novel_exposure'].to_numpy()),
-    len(A013_day7_bins_p['A013_day7_rest_post1'].to_numpy())
-]
-
-epoch_lengths
-
-plot_assembly_activity_overtime(Social_joint_CA2_CA3_assembly_activities_over_time, epoch_lengths)
-
-```
-
-![activity](https://github.com/user-attachments/assets/0cee3168-0720-4884-9358-6b7a2bbe153b)
+1. CCG between CA2 and CA3 cells after social and object interaction
+2. Joint CA2-CA3 cell assembly activity and CA2 only cell assembly activity after social and object interaction
+3. Peak reactivation strength for CA2-CA3, CA2, CA2-CA1 cell assemblies.
+4. Similarity between Joint CA2-CA3 and CA2 only cell assemblies during social and object interaction 
 
 
 ## Citation
