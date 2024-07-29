@@ -143,9 +143,10 @@ def plot_frequency_correlation(behavior_intervals, con_spikes_bin_ca2, con_spike
     
     rcParams['axes.spines.top'] = False
     rcParams['axes.spines.right'] = False
-    
-    fig = plt.figure(figsize=(30,8))
-    gs = gridspec.GridSpec(6, 1, height_ratios=[8, 8, 8, 1, 2, 3])
+    rcParams.update({'font.size': 12})
+
+    fig = plt.figure(figsize=(20,10))
+    gs = gridspec.GridSpec(6, 1, height_ratios=[8, 8, 4, 2, 2, 1])
     axs = []
     axs.append(fig.add_subplot(gs[0]))
     axs.append(fig.add_subplot(gs[1]))
@@ -160,58 +161,59 @@ def plot_frequency_correlation(behavior_intervals, con_spikes_bin_ca2, con_spike
                vmax=0.09,
                vmin=-0.06)
     axs[0].xaxis.set_major_locator(ticker.NullLocator())
-    axs[0].set_ylabel('Neuron activity in CA2') 
+    axs[0].set_ylabel('CA2 neural activity', fontsize=14)
     axs[1].imshow(con_spikes_bin_ca3,
                aspect='auto',
                vmax=0.09,
                vmin=-0.06)
-    axs[1].set_ylabel('Neuron activity in CA3')
+    axs[1].set_ylabel('CA3 neural activity', fontsize=14)
     axs[1].xaxis.set_major_locator(ticker.NullLocator())
     
     axs[2].scatter(mean_epoch_intervals, mean_ep_correlations_ca2_ca3, alpha=0.5)
     axs[2].errorbar(mean_epoch_intervals, mean_ep_correlations_ca2_ca3, yerr=std_ep_correlations_ca2_ca3, fmt="o", alpha=0.5)
-    # axs[2].legend(labels=("CA2/CA3","CA2","CA3"), loc="upper right", bbox_to_anchor=(0, 0, 1.05, 1.07), fontsize=10)
     rect_1 = patches.Rectangle((mean_epoch_intervals[1] - epoch/(bin*2),0), epoch/(bin), max(np.mean(ep_correlations_ca2_ca3, 0)), linewidth=0.5, edgecolor='r', facecolor='none')
     rect_2 = patches.Rectangle((mean_epoch_intervals[2] - epoch/(bin*2),0), epoch/(bin), max(np.mean(ep_correlations_ca2_ca3, 0)), linewidth=0.5, edgecolor='black', facecolor='none')
     axs[2].add_patch(rect_1)
     axs[2].add_patch(rect_2)
     for n in [4,7]:
         axs[2].axvspan(behavior_intervals[n][0], behavior_intervals[n][1], alpha=0.2, color=list(mcolors.TABLEAU_COLORS.values())[n])
-    axs[2].set_ylabel("CCG (%)")
+    axs[2].set_ylabel("CCG (%)", fontsize=15)
     axs[2].set_xlim(0,behavior_intervals[-1][1])
     axs[2].xaxis.set_major_locator(ticker.NullLocator())
-    
-    for n in range(len(behaviors)):
-        axs[3].axvspan(behavior_intervals[n][0], behavior_intervals[n][1], alpha=0.5, color=list(mcolors.TABLEAU_COLORS.values())[n])  
-    axs[3].yaxis.set_major_locator(ticker.NullLocator())
-    axs[3].xaxis.set_major_locator(ticker.NullLocator())
-    axs[3].set_xlim(0, behavior_intervals[-1][1])
-    axs[3].legend(labels=behaviors, loc="lower right", bbox_to_anchor=(0, -11, 1, 0.1), ncols=len(behaviors), mode="expand", borderaxespad=0, fontsize=8)
 
-    axs[4].scatter(SWR_peaktimes, np.ones_like(SWR_peaktimes), s=100, marker=2, alpha=0.1, color="b")
+    axs[3].scatter(SWR_peaktimes, np.ones_like(SWR_peaktimes), s=300, marker=2, alpha=0.1, color="b")
+    axs[3].set_ylim(0.95, 1.2)
+    axs[3].set_xlim(0, behavior_intervals[-1][1]*bin)
+    axs[3].xaxis.set_major_locator(ticker.NullLocator())
+    axs[3].yaxis.set_major_locator(ticker.NullLocator())
+    axs[3].set_ylabel('SWR', fontsize=15)
+    for n in [4,7]:
+        axs[3].axvspan(behavior_intervals[n][0]*bin, behavior_intervals[n][1]*bin, alpha=0.2, color=list(mcolors.TABLEAU_COLORS.values())[n])
+        
+    for WAKE in SleepState[0]:
+        axs[4].axvspan(WAKE[0], WAKE[1], 0.7, 1, color="violet")
+    for REM in SleepState[1]:
+        axs[4].axvspan(REM[0], REM[1], 0.35, 0.65, color="cornflowerblue")
+    for NREM in SleepState[2]:
+        axs[4].axvspan(NREM[0], NREM[1], 0, 0.3, color="slategrey")
+    
     axs[4].set_xlim(0, SWR_peaktimes[-1])
     axs[4].xaxis.set_major_locator(ticker.NullLocator())
-    axs[4].yaxis.set_major_locator(ticker.NullLocator())
-    axs[4].set_ylabel('SWR')
+    axs[4].set_yticks([0.15, 0.5, 0.85], labels=["NREM", "REM", "WAKE"], fontsize=12)
 
-    for WAKE in SleepState[0]:
-        axs[5].axvspan(WAKE[0], WAKE[1], 0.7, 1, color="violet")
-    for REM in SleepState[1]:
-        axs[5].axvspan(REM[0], REM[1], 0.35, 0.65, color="cornflowerblue")
-    for NREM in SleepState[2]:
-        axs[5].axvspan(NREM[0], NREM[1], 0, 0.3, color="slategrey")
-    
-    axs[5].set_xlim(0, SWR_peaktimes[-1])
-    axs[5].set_xlabel('time (min)')
-    
-    plt.xticks(np.arange(0, SWR_peaktimes[-1], step=600), labels=[str(int(i//60)) for i in np.arange(0, SWR_peaktimes[-1], step=600)])
-    plt.yticks([0.15, 0.55, 0.85], labels=["NREM", "REM", "WAKE"])
-    plt.title(f"Neuron activity, correlation strength amd SWR during different behavioral states in {name}", pad=440, fontsize=20)
+    for n in range(len(behaviors)):
+        axs[5].axvspan(behavior_intervals[n][0], behavior_intervals[n][1], alpha=0.5, color=list(mcolors.TABLEAU_COLORS.values())[n])  
+    axs[5].yaxis.set_major_locator(ticker.NullLocator())
+    axs[5].set_xlim(0, behavior_intervals[-1][1])
 
+    axs[5].legend(labels=['rest_hab_pre','habituation_arena','rest_hab_post','habituation_cage','rest_pre','2novel_exposure','exposure_reversed','rest_post2','1novel_exposure','rest_post1'][:len(behaviors)], loc="lower right", bbox_to_anchor=(0, -4, 1, 0.1), ncols=len(behaviors), mode="expand", borderaxespad=0, fontsize=10)
+    axs[5].set_xlabel('time (min)', fontsize=15)
+    axs[5].set_xticks(np.arange(0, behavior_intervals[-1][1], step=600//bin), labels=[str(int(i*bin//60)) for i in np.arange(0, behavior_intervals[-1][1], step=600//bin)])
+    plt.title(f"Neural activity, correlation strength and SWR during different behavioral paradigms and sleep states in {name}", pad=570, fontsize=20)
     
     plt.show()
-    rcParams['axes.spines.top'] = True
-    rcParams['axes.spines.right'] = True
+    plt.rcdefaults() 
+
 
 
 
@@ -240,7 +242,7 @@ def plot_correlation_1(social, object):
     axs.set_ylabel("CCG outside SWR (%)")
     axs.set_xlim(-60, 60)
     axs.set_ylim(0, 300)
-    plt.title("Correlation strength following social interaction with unfamiliar mice or interaction with a novel object", pad=20)
+    plt.title("Correlation strength following social interaction with unfamiliar mice or interaction with a novel object outside SWR episodes", pad=20)
 
     plt.show()
 
@@ -254,7 +256,7 @@ def plot_correlation_2(social, object):
     axs.set_ylabel("CCG during SWR (%)")
     axs.set_xlim(-60, 60)
     axs.set_ylim(0, 300)
-    plt.title("Correlation strength following social interaction with unfamiliar mice during SWR episodes", pad=20)
+    plt.title("Correlation strength following social interaction with unfamiliar mice or interaction with a novel object during SWR episodes", pad=20)
 
     plt.show()
 
