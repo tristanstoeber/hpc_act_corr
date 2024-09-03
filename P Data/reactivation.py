@@ -16,6 +16,7 @@ from import_data import (
      load_epochs, 
      load_SleepState_states,
      load_spikes,
+     load_ripples_events,
      event_triggered_average_fast
      )
 
@@ -144,6 +145,15 @@ class AssemblyReact(object):
         )
         
         
+           
+    def load_ripples(self):
+        """
+        loads ripples from the session folder
+        """
+        ripples = load_ripples_events(self.project_path,self.mice_name)
+        self.ripples = nel.EpochArray(
+            [np.array([ripples.start, ripples.stop]).T], domain=self.time_support
+        )
 
     def load_epoch(self):
         """
@@ -165,7 +175,7 @@ class AssemblyReact(object):
         """
         self.load_epoch()
         self.load_spikes()
-        #self.load_ripples()
+        self.load_ripples()
 
     def restrict_epochs_to_pre_task_post(self) -> None:
         """

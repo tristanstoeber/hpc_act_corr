@@ -4,6 +4,19 @@ import numpy as np
 import os
 import nelpy as nel
 import hdf5storage
+import scipy.io as sio
+import scipy.io as sio
+import sys, os
+import nelpy as nel
+import warnings
+from neuro_py.process.intervals import in_intervals, find_interval
+from neuro_py.process.peri_event import get_participation
+from neuro_py.behavior.utils import get_speed
+from warnings import simplefilter
+import multiprocessing
+from joblib import Parallel, delayed
+from xml.dom import minidom
+from scipy import signal
 
 
 def load_cell_metrics(project_path: str, mice_name : str) -> tuple:
@@ -86,6 +99,102 @@ def load_SleepState_states(project_path: str, mice_name : str):
     return BrainState
 
 
+def load_ripples_events(
+    project_path: str, mice_name: str,return_epoch_array: bool = False, manual_events: bool = True
+):
+
+
+    # load matfile
+    try:
+        data = sio.loadmat(project_path+ '/'+ mice_name+'/'+mice_name+'.ripples.events.mat')
+    except:
+        data =  hdf5storage.loadmat(project_path+ '/'+ mice_name+'/'+mice_name+'.ripples.events.mat')
+    # make data frame of known fields
+    df = pd.DataFrame()
+    try:
+        df["start"] = data["ripples"]["timestamps"][0][0][:, 0]
+        df["stop"] = data["ripples"]["timestamps"][0][0][:, 1]
+    except:
+        df["start"] = data["ripples"]["times"][0][0][:, 0]
+        df["stop"] = data["ripples"]["times"][0][0][:, 1]
+
+    for name in ["peaks", "amplitude", "duration", "frequency", "peakNormedPower"]:
+        try:
+            df[name] = data["ripples"][name][0][0]
+        except:
+            df[name] = np.nan
+
+    if df.duration.isna().all():
+        df["duration"] = df.stop - df.start
+
+    try:
+        df["detectorName"] = data["ripples"]["detectorinfo"][0][0]["detectorname"][0][
+            0
+        ][0]
+    except:
+        try:
+            df["detectorName"] = data["ripples"]["detectorName"][0][0][0]
+        except:
+            df["detectorName"] = "unknown"
+
+    # find ripple channel (this can be in several places depending on the file)
+    try:
+        df["ripple_channel"] = data["ripples"]["detectorinfo"][0][0]["detectionparms"][
+            0
+        ][0]["Channels"][0][0][0][0]
+    except:
+        try:
+            df["ripple_channel"] = data["ripples"]["detectorParams"][0][0]["channel"][
+                0
+            ][0][0][0]
+        except:
+            try:
+                df["ripple_channel"] = data["ripples"]["detectorinfo"][0][0][
+                    "detectionparms"
+                ][0][0]["channel"][0][0][0][0]
+            except:
+                try:
+                    df["ripple_channel"] = data["ripples"]["detectorinfo"][0][0][
+                        "detectionparms"
+                    ][0][0]["ripple_channel"][0][0][0][0]
+                except:
+                    try:
+                        df["ripple_channel"] = data["ripples"]["detectorinfo"][0][0][
+                            "detectionchannel1"
+                        ][0][0][0][0]
+                    except:
+                        df["ripple_channel"] = np.nan
+
+    # remove flagged ripples, if exist
+    try:
+        df.drop(
+            labels=np.array(data["ripples"]["flagged"][0][0]).T[0] - 1,
+            axis=0,
+            inplace=True,
+        )
+        df.reset_index(inplace=True)
+    except:
+        pass
+
+
+    # adding if ripples were restricted by spikes
+    dt = data["ripples"].dtype
+    if "eventSpikingParameters" in dt.names:
+        df["event_spk_thres"] = 1
+    else:
+        df["event_spk_thres"] = 0
+
+    # # get basename and animal
+    # normalized_path = os.path.normpath(filename)
+    # path_components = normalized_path.split(os.sep)
+    # df["basepath"] = basepath
+    # df["basename"] = path_components[-2]
+    # df["animal"] = path_components[-3]
+
+    if return_epoch_array:
+        return nel.EpochArray([np.array([df.start, df.stop]).T], label="ripples")
+
+    return df
 
 
 
@@ -201,7 +310,96 @@ def load_spikes(
     return st, cell_metrics
 
 
+def load_animal_behavior(project_path, mice_name):
+    data = []
+    try:
+        data = sio.loadmat(project_path+ '/'+ mice_name+'/'+mice_name+'.Behavior.mat', simplify_cells=True)
+    except:
+        data = hdf5storage.loadmat(project_path+ '/'+ mice_name+'/'+mice_name+'.Behavior.mat', simplify_cells=True)
 
+    df = pd.DataFrame()
+    # add timestamps first which provide the correct shape of df
+    # here, I'm naming them time, but this should be depreciated
+    df["time"] = data["behavior"]["timestamps"]
+
+    # add all other position coordinates to df (will add everything it can within position)
+    for key in data["behavior"]["position"].keys():
+        try:
+            df[key] = data["behavior"]["position"][key]
+        except:
+            pass
+    # add other fields from behavior to df (acceleration,speed,states)
+    for key in data["behavior"].keys():
+        try:
+            df[key] = data["behavior"][key]
+        except:
+            pass
+    # add speed and acceleration
+    if "speed" not in df.columns:
+        df["speed"] = get_speed(df[["x", "y"]].values, df.time.values)
+    if "acceleration" not in df.columns:
+        df.loc[1:, "acceleration"] = np.diff(df["speed"])
+
+    trials = data["behavior"]["trials"]
+    try:
+        for t in range(trials['recordings'].shape[0]):
+            idx = (df.time >= trials[t, 0]) & (df.time <= trials[t, 1])
+            df.loc[idx, "trials"] = t
+    except:
+        pass
+
+    epochs = load_epochs(project_path, mice_name)
+    for t in range(epochs.shape[0]):
+        idx = (df.time >= epochs.Start_Time.iloc[t]) & (
+            df.time <= epochs.End_Time.iloc[t]
+        )
+        df.loc[idx, "epochs"] = epochs.BehavioralParadigm.iloc[t]
+        #df.loc[idx, "environment"] = epochs.environment.iloc[t]
+        
+        
+        
+    xmin= data["behavior"]['zone'][0]['xmin']
+
+    ymin= data["behavior"]['zone'][0]['ymin']
+
+    ymax= data["behavior"]['zone'][0]['ymax']
+
+    xmax= data["behavior"]['zone'][0]['xmax']
+    coords = {'xmin-ymin':[xmin, ymin],'xmin-ymax':[xmin, ymax], 'xmax-ymin':[xmax, ymin], 'xmax-ymax':[xmax, ymax]}
+
+    xmin_ymin = coords['xmin-ymin']
+    xmin_ymax = coords['xmin-ymax']
+    xmax_ymin = coords['xmax-ymin']
+    xmax_ymax = coords['xmax-ymax']
+    
+    all_coords = [xmin_ymin, xmin_ymax, xmax_ymin, xmax_ymax]
+    
+    center_x = sum(coord[0] for coord in all_coords) / 4
+    center_y = sum(coord[1] for coord in all_coords) / 4
+    
+
+    center = (center_x, center_y)
+    return df, center
+
+
+def restrict_to_social(project_path,mice_name,assembly_react,epoch_id):
+    position_df, center = load_animal_behavior(project_path , mice_name)
+    
+    position_df_rest= position_df[(position_df ['y'] <= 25) & (position_df ['x'] >= 25)]
+    pos = nel.AnalogSignalArray(
+        data = list(position_df_rest[["x", "y"]].values.T),
+        timestamps=list(position_df_rest.timestamps.values),
+        fs = 30
+    )
+
+    dict_epoch_pos = {'Start': [] , 'End': []}
+    for nepoch in range(0,pos[assembly_react.epochs[epoch_id]].n_epochs):
+        dict_epoch_pos['Start'].append(pos[assembly_react.epochs[epoch_id]][nepoch].time[0])
+        dict_epoch_pos['End'].append(pos[assembly_react.epochs[epoch_id]][nepoch].time[-1])
+    
+    epoch_pos_df = pd.DataFrame(dict_epoch_pos)    
+    epoch_near_zone = nel.EpochArray(epoch_pos_df.values)
+    return epoch_near_zone
 
 
 def event_triggered_average_fast(
